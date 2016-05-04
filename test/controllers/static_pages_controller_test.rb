@@ -20,5 +20,6 @@ class StaticPagesControllerTest < ActionController::TestCase
     assert_select "title", "Ruby on Rails Tutorial Sample App"
 
   end
+  
 
 end

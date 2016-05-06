@@ -2,6 +2,7 @@ class User < ActiveRecord::Base
   attr_accessor :remember_token, :activation_token, :reset_token
   before_save   :downcase_email
   before_create :create_activation_digest
+  has_many :microposts, dependent: :destroy
 
   validates :name, presence: true, length: {maximum: 50}
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
@@ -36,10 +37,9 @@ class User < ActiveRecord::Base
     update_attribute(:remember_digest, nil)
   end
 
-    def activate
-      update_attribute(:activated,    true)
-      update_attribute(:activated_at, Time.zone.now)
-    end
+  def activate
+    update_columns(activated: FILL_IN, activated_at: FILL_IN)
+  end
 
     # 有効化用のメールを送信する
     def send_activation_email
@@ -48,8 +48,9 @@ class User < ActiveRecord::Base
 
     def create_reset_digest
         self.reset_token = User.new_token
-        update_attribute(:reset_digest,  User.digest(reset_token))
-        update_attribute(:reset_sent_at, Time.zone.now)
+        update_columns(reset_digest:  FILL_IN,
+                  reset_sent_at: FILL_IN)
+
       end
 
       # パスワード再設定のメールを送信する
@@ -60,6 +61,11 @@ class User < ActiveRecord::Base
         def password_reset_expired?
           reset_sent_at < 2.hours.ago
         end
+
+        def feed
+            Micropost.where("user_id = ?", id)
+        end
+
 
   private
   # メールアドレスをすべて小文字にする
